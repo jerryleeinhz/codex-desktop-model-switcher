@@ -55,6 +55,20 @@ Then open:
 http://127.0.0.1:4310
 ```
 
+This foreground mode is mainly for development. If you close the terminal, the UI service stops.
+
+To keep it running in the background:
+
+```bash
+./scripts/install-launchagent.sh
+```
+
+To stop the background service:
+
+```bash
+./scripts/uninstall-launchagent.sh
+```
+
 ## Repository Layout
 
 - `docs/feasibility.md`

@@ -55,6 +55,13 @@ const server = createServer(async (req, res) => {
       return sendJson(res, 200, await getStatus("Asked macOS to open Codex Desktop."));
     }
 
+    if (req.method === "POST" && url.pathname === "/api/codex/relaunch") {
+      await runCommand("osascript", ["-e", 'tell application "Codex" to quit'], { allowFailure: true });
+      await delay(1200);
+      await runCommand("open", ["-a", codexAppPath], { allowFailure: false });
+      return sendJson(res, 200, await getStatus("Asked macOS to relaunch Codex Desktop."));
+    }
+
     return sendJson(res, 404, { error: "Not found" });
   } catch (error) {
     return sendJson(res, 500, {
@@ -171,6 +178,10 @@ function runCommand(command, args, { allowFailure }) {
       reject(new Error(`${command} exited with code ${code}`));
     });
   });
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function send(res, statusCode, body, contentType) {

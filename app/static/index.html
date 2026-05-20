@@ -158,9 +158,16 @@
           <strong>Open Codex Desktop</strong>
           <span>Launch Codex Desktop with the current saved defaults.</span>
         </button>
+        <button data-action="relaunch-codex">
+          <strong>Relaunch Codex Desktop</strong>
+          <span>Quit the current app instance, then reopen it with the current saved defaults.</span>
+        </button>
       </section>
 
       <div class="status" id="statusLine">Loading current status...</div>
+      <div class="status" style="font-size:13px">
+        Switching the saved model usually affects new Desktop sessions. Use relaunch if the current app keeps reconnecting.
+      </div>
     </main>
     <script>
       const modelValue = document.getElementById("modelValue");
@@ -178,7 +185,8 @@
             "switch-openai": "/api/switch/openai",
             "proxy-start": "/api/proxy/start",
             "proxy-stop": "/api/proxy/stop",
-            "open-codex": "/api/codex/open"
+            "open-codex": "/api/codex/open",
+            "relaunch-codex": "/api/codex/relaunch"
           }[action];
 
           if (!route) return;
