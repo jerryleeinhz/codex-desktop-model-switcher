@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Codex Desktop Model Switcher</title>
+    <style>
+      :root {
+        --bg: #0d1117;
+        --panel: #161b22;
+        --panel-2: #1f2630;
+        --text: #e6edf3;
+        --muted: #9da7b3;
+        --border: #30363d;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: linear-gradient(180deg, #0d1117 0%, #111827 100%);
+        color: var(--text);
+      }
+      .wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 48px 20px 64px;
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 32px;
+        line-height: 1.1;
+      }
+      p.lead {
+        margin: 0 0 28px;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        background: rgba(22, 27, 34, 0.92);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 18px;
+      }
+      .label {
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+      .value {
+        font-size: 18px;
+        font-weight: 600;
+        word-break: break-word;
+      }
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 12px;
+        margin-top: 22px;
+      }
+      button {
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+        color: var(--text);
+        border-radius: 10px;
+        padding: 14px 16px;
+        font: inherit;
+        text-align: left;
+        cursor: pointer;
+      }
+      button strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 15px;
+      }
+      button span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+      .status {
+        margin-top: 18px;
+        min-height: 24px;
+        color: var(--muted);
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 10px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        background: #111827;
+        border: 1px solid var(--border);
+      }
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #6b7280;
+      }
+      .dot.ok { background: #22c55e; }
+      .dot.bad { background: #ef4444; }
+      @media (max-width: 640px) {
+        .wrap { padding-top: 28px; }
+        h1 { font-size: 26px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <h1>Codex Desktop Model Switcher</h1>
+      <p class="lead">
+        Switch Codex Desktop between OpenAI and DeepSeek, check bridge health, and launch Desktop from one place.
+      </p>
+
+      <section class="grid">
+        <article class="card">
+          <div class="label">Current Desktop Model</div>
+          <div class="value" id="modelValue">Loading...</div>
+        </article>
+        <article class="card">
+          <div class="label">Current Provider</div>
+          <div class="value" id="providerValue">Loading...</div>
+        </article>
+        <article class="card">
+          <div class="label">DeepSeek Proxy</div>
+          <div class="value" id="proxyValue">Checking...</div>
+          <div class="pill">
+            <span class="dot" id="proxyDot"></span>
+            <span id="proxyConfigured">Checking config...</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="actions">
+        <button data-action="switch-deepseek">
+          <strong>Switch to DeepSeek</strong>
+          <span>Set Desktop defaults to `deepseek-v4-pro` with provider `deepseek`.</span>
+        </button>
+        <button data-action="switch-openai">
+          <strong>Switch to OpenAI</strong>
+          <span>Set Desktop defaults to `gpt-5.5` with provider `openai`.</span>
+        </button>
+        <button data-action="proxy-start">
+          <strong>Start DeepSeek Proxy</strong>
+          <span>Kick the LaunchAgent and health-check the local bridge.</span>
+        </button>
+        <button data-action="proxy-stop">
+          <strong>Stop DeepSeek Proxy</strong>
+          <span>Stop the LaunchAgent if you want to pause the bridge.</span>
+        </button>
+        <button data-action="open-codex">
+          <strong>Open Codex Desktop</strong>
+          <span>Launch Codex Desktop with the current saved defaults.</span>
+        </button>
+      </section>
+
+      <div class="status" id="statusLine">Loading current status...</div>
+    </main>
+    <script>
+      const modelValue = document.getElementById("modelValue");
+      const providerValue = document.getElementById("providerValue");
+      const proxyValue = document.getElementById("proxyValue");
+      const proxyDot = document.getElementById("proxyDot");
+      const proxyConfigured = document.getElementById("proxyConfigured");
+      const statusLine = document.getElementById("statusLine");
+
+      document.querySelectorAll("[data-action]").forEach((button) => {
+        button.addEventListener("click", async () => {
+          const action = button.getAttribute("data-action");
+          const route = {
+            "switch-deepseek": "/api/switch/deepseek",
+            "switch-openai": "/api/switch/openai",
+            "proxy-start": "/api/proxy/start",
+            "proxy-stop": "/api/proxy/stop",
+            "open-codex": "/api/codex/open"
+          }[action];
+
+          if (!route) return;
+          statusLine.textContent = "Working...";
+          try {
+            const response = await fetch(route, { method: "POST" });
+            const payload = await response.json();
+            if (!response.ok) throw new Error(payload.error || "Request failed");
+            render(payload);
+          } catch (error) {
+            statusLine.textContent = error.message || String(error);
+          }
+        });
+      });
+
+      refresh();
+
+      async function refresh() {
+        try {
+          const response = await fetch("/api/status");
+          const payload = await response.json();
+          render(payload);
+        } catch (error) {
+          statusLine.textContent = error.message || String(error);
+        }
+      }
+
+      function render(payload) {
+        modelValue.textContent = payload.desktop.model || "Unknown";
+        providerValue.textContent = payload.desktop.provider || "Unknown";
+        proxyValue.textContent = payload.deepseek.proxyHealthy ? "Healthy" : "Not reachable";
+        proxyDot.className = `dot ${payload.deepseek.proxyHealthy ? "ok" : "bad"}`;
+        proxyConfigured.textContent = payload.deepseek.providerConfigured
+          ? "DeepSeek provider is configured"
+          : "DeepSeek provider is missing";
+        statusLine.textContent = payload.message || "Ready.";
+      }
+    </script>
+  </body>
+</html>

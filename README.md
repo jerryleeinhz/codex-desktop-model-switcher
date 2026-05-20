@@ -31,6 +31,30 @@ This project instead builds a separate control surface with a cleaner maintenanc
 - launch/relaunch Codex Desktop
 - reuse the existing `responses -> chat/completions` DeepSeek bridge
 
+## MVP
+
+The current MVP is a local web UI that can:
+
+- show the current Codex Desktop `model`
+- show the current Codex Desktop `model_provider`
+- show DeepSeek proxy health
+- switch Desktop defaults to OpenAI
+- switch Desktop defaults to DeepSeek
+- start or stop the proxy
+- open Codex Desktop
+
+Start it with:
+
+```bash
+npm start
+```
+
+Then open:
+
+```text
+http://127.0.0.1:4310
+```
+
 ## Repository Layout
 
 - `docs/feasibility.md`
@@ -58,4 +82,3 @@ Launch Codex Desktop
 Relaunch Codex Desktop
 Show current Desktop model
 ```
-
